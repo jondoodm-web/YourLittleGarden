@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your little garden</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg1:#e9f5e4;--bg2:#fbe3e6;--ink:#33413a;--soft:#66776d;--panel:rgba(255,255,255,.72);--chip:rgba(51,65,58,.09);--on:#33413a;--onink:#fff;--acc:#e56b86;--fly:#f2a900;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#0f2224;--bg2:#2a1f3d;--ink:#eaf3ea;--soft:#a9bdb2;--panel:rgba(20,32,36,.72);--chip:rgba(255,255,255,.1);--on:#eaf3ea;--onink:#10201f;--acc:#ff9fb4;--fly:#ffe58a}}
+:root[data-theme="dark"]{--bg1:#0f2224;--bg2:#2a1f3d;--ink:#eaf3ea;--soft:#a9bdb2;--panel:rgba(20,32,36,.72);--chip:rgba(255,255,255,.1);--on:#eaf3ea;--onink:#10201f;--acc:#ff9fb4;--fly:#ffe58a}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--ink);font-family:"Nunito",system-ui,sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#cv{position:fixed;inset:0;width:100%;height:100%;touch-action:manipulation}
+header{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:1rem 1.1rem;z-index:3;pointer-events:none}
+header>*{pointer-events:auto}
+h1{font:500 2rem/1.1 "Caveat",cursive;margin:0}
+#count{color:var(--soft);font-size:.9rem;margin:.2rem 0 0}
+button{font:inherit;color:var(--ink);background:var(--chip);border:0;border-radius:1.4rem;padding:.55rem 1rem;cursor:pointer;transition:background .2s,transform .2s}
+button:hover{transform:translateY(-1px)}button:focus-visible,textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button.sel,button[aria-pressed="true"]{background:var(--on);color:var(--onink)}
+nav{position:fixed;bottom:0;left:0;right:0;padding:.7rem .7rem calc(.7rem + env(safe-area-inset-bottom,0px));display:flex;gap:.4rem;justify-content:center;z-index:3;background:linear-gradient(transparent,var(--bg2))}
+nav button{padding:.6rem .8rem;font-weight:600;font-size:.9rem}
+.panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-52%);width:min(92vw,30rem);max-height:70vh;overflow-y:auto;background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:1.6rem;padding:1.4rem;z-index:2;text-align:center}
+.panel[hidden]{display:none}
+.panel h2{font:500 1.9rem "Caveat",cursive;margin:0 0 .3rem}
+.panel p{margin:.3rem 0 1rem;color:var(--soft)}
+.row{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.8rem 0}
+.orbwrap{height:13rem;display:grid;place-items:center}
+#orb{width:11rem;height:11rem;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0,var(--acc) 70%);box-shadow:0 0 50px var(--acc);transform:scale(.6);transition:transform 4s ease-in-out}
+#cue{font:500 1.6rem "Caveat",cursive;min-height:2rem}
+.paper{background:#fffdf5;color:#3a3230;border-radius:.4rem;padding:1.1rem 1.2rem;font:500 1.4rem/1.35 "Caveat",cursive;box-shadow:0 6px 20px rgba(0,0,0,.18);margin:.8rem auto;max-width:24rem;text-align:left;transition:transform .5s}
+textarea{width:100%;min-height:6rem;border:0;border-radius:1rem;padding:.8rem;font:500 1.3rem "Caveat",cursive;background:#fffdf5;color:#3a3230;resize:none}
+.slip{position:fixed;z-index:5;background:#fffdf5;color:#3a3230;font:500 1.2rem "Caveat",cursive;padding:.6rem .8rem;border-radius:.3rem;max-width:14rem;pointer-events:none;animation:away 4s ease-in forwards}
+@keyframes away{0%{transform:translate(0,0) scale(1) rotate(0)}25%{transform:translate(0,-20px) scale(.6) rotate(-6deg);opacity:1}100%{transform:translate(30px,-60vh) scale(.05) rotate(40deg);opacity:0}}
+.word{position:fixed;pointer-events:none;transform:translateX(-50%);font:500 1.3rem "Caveat",cursive;animation:rise 3s ease-out forwards;z-index:4}
+@keyframes rise{0%{opacity:0}20%{opacity:1}100%{opacity:0;margin-top:-70px}}
+.saved{font:500 1.2rem "Caveat",cursive;text-align:left;color:var(--ink);margin:.2rem 0}
+@media (prefers-reduced-motion:reduce){#orb{transition:none}.slip,.word{animation-duration:.01s}}
+</style></head><body>
+<canvas id="cv"></canvas>
+<header><div><h1 id="hi">Hello, you</h1><p id="count">Tap the ground to plant something.</p></div>
+<button id="snd" aria-pressed="false">Soft rain: off</button></header>
+
+<section class="panel" id="v-breathe" hidden>
+<h2>Breathe with me</h2><p>Pick a rhythm. Follow the light.</p>
+<div class="row" id="pats"><button data-p="calm" class="sel">Calm</button><button data-p="deep">Deep (4-7-8)</button><button data-p="box">Box</button></div>
+<div class="orbwrap"><div id="orb"></div></div><div id="cue">Ready when you are</div>
+<div class="row"><button id="go">Start</button></div><p id="cyc"></p></section>
+
+<section class="panel" id="v-letters" hidden>
+<h2>Open when&hellip;</h2><p>Letters I wrote for you. Open whichever fits.</p>
+<div class="row" id="lt"></div><div class="paper" id="letter" hidden></div></section>
+
+<section class="panel" id="v-release" hidden>
+<h2>Let it go</h2><p>Write what's weighing on you. Then watch it float away.</p>
+<textarea id="w" placeholder="It's been a lot because..." maxlength="200"></textarea>
+<div class="row"><button id="rel">Release it</button></div><p id="rm"></p></section>
+
+<section class="panel" id="v-jar" hidden>
+<h2>Reasons I love you</h2><p>Pull a note from the jar.</p>
+<div class="paper" id="note" hidden></div>
+<div class="row"><button id="pull">Pull a note</button><button id="keep" hidden aria-pressed="false">Keep this one</button></div>
+<div id="kept"></div></section>
+
+<nav id="tabs">
+<button data-v="garden" class="sel">Garden</button><button data-v="breathe">Breathe</button><button data-v="letters">Letters</button><button data-v="release">Release</button><button data-v="jar">Jar</button></nav>
+
+<script>
+// ---- Personalize ----
+const HER="", ME="";
+const LETTERS={
+ "you're sad":"It's okay to be sad. You don't have to be fine for me. I'd rather sit in the sad with you than have you hide it. I love you on the good days and the heavy ones.",
+ "you can't sleep":"Put the phone down after this, and drop your shoulders. Nothing needs solving at this hour. Tomorrow-you can handle it, and I'll be right there with you.",
+ "you're stressed":"Take the next hour off in your head. Do the smallest possible thing, then rest. You are doing so much more than you give yourself credit for.",
+ "you miss me":"I miss you too, more than I say. Distance is temporary, and this is not. Close your eyes: I'm hugging you right now.",
+ "you doubt yourself":"You are the most capable, kind, stubborn person I know. When you can't see it, borrow my eyes for a while."
+};
+const REASONS=["The way you laugh at your own jokes before the punchline.","You care about people even when you're exhausted.","You make ordinary days feel like they matter.","You're braver than you think you are.","Your hugs fix things.","You try again after hard days.","You notice small things about me.","Being with you feels like home.","Your smile is my favorite view.","You're honest, even when it's hard.","You make me want to be better.","I love you exactly as you are."];
+const WORDS=["you're loved","breathe","I'm here","soft","grow","rest"];
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const hr=new Date().getHours();
+$("#hi").textContent=(hr<12?"Good morning":hr<18?"Good afternoon":"Good evening")+(HER?", "+HER:", you");
+
+// ---- Garden canvas ----
+const cv=$("#cv"),cx=cv.getContext("2d");let W,H;
+function rs(){const d=devicePixelRatio||1;W=innerWidth;H=innerHeight;cv.width=W*d;cv.height=H*d;cx.setTransform(d,0,0,d,0,0)}
+addEventListener("resize",rs);rs();
+const cols=["#ff8fa3","#ffb997","#ffd166","#cdb4db","#a0c4ff","#f7a8e0"];
+let fl=[],mx=W/2,my=H/2,tab="garden",planted=0;
+const fy=Array.from({length:28},()=>({x:Math.random()*W,y:Math.random()*H*.8,a:Math.random()*6.28,p:Math.random()*6}));
+function plant(x,y){fl.push({x,y,t:0,h:60+Math.random()*90,c:cols[Math.random()*cols.length|0],n:5+(Math.random()*4|0),r:.8+Math.random()*.7});
+ planted++;$("#count").textContent=planted+(planted==1?" flower":" flowers")+" in your garden";
+ if(planted%2)word(x,y-20,WORDS[Math.random()*WORDS.length|0])}
+function word(x,y,t){const w=document.createElement("span");w.className="word";w.textContent=t;w.style.left=x+"px";w.style.top=y+"px";document.body.appendChild(w);setTimeout(()=>w.remove(),3100)}
+cv.addEventListener("pointerdown",e=>{if(tab==="garden")plant(e.clientX,e.clientY)});
+addEventListener("pointermove",e=>{mx=e.clientX;my=e.clientY});
+const fc=()=>getComputedStyle(document.documentElement).getPropertyValue("--fly").trim()||"#f2a900";
+function draw(t){cx.clearRect(0,0,W,H);
+ for(const f of fl){f.t=Math.min(1,f.t+.012);const e=1-Math.pow(1-f.t,3),sw=Math.sin(t/900+f.x)*4*e,tx=f.x+sw,ty=f.y-f.h*e;
+  cx.strokeStyle="#5f9c6e";cx.lineWidth=3;cx.beginPath();cx.moveTo(f.x,f.y);cx.quadraticCurveTo(f.x,f.y-f.h*e*.5,tx,ty);cx.stroke();
+  cx.fillStyle=f.c;for(let i=0;i<f.n;i++){cx.save();cx.translate(tx,ty);cx.rotate(i/f.n*6.283+t/4000);cx.beginPath();cx.ellipse(0,-11*f.r*e,6*f.r*e,12*f.r*e,0,0,6.283);cx.fill();cx.restore()}
+  cx.fillStyle="#ffe08a";cx.beginPath();cx.arc(tx,ty,5*f.r*e,0,6.283);cx.fill()}
+ const c=fc();cx.shadowColor=c;cx.shadowBlur=14;cx.fillStyle=c;
+ for(const q of fy){q.a+=(Math.random()-.5)*.2;q.x+=Math.cos(q.a)*.5;q.y+=Math.sin(q.a)*.5;
+  if(tab==="garden"){const dx=mx-q.x,dy=my-q.y,d=Math.hypot(dx,dy);if(d<200){q.x+=dx/d*.6;q.y+=dy/d*.6}}
+  if(q.x<0)q.x=W;if(q.x>W)q.x=0;if(q.y<0)q.y=H;if(q.y>H)q.y=0;
+  cx.globalAlpha=.4+.6*Math.abs(Math.sin(t/700+q.p));cx.beginPath();cx.arc(q.x,q.y,2.6,0,6.283);cx.fill()}
+ cx.globalAlpha=1;cx.shadowBlur=0;requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
+
+// ---- Tabs ----
+$("#tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;tab=b.dataset.v;
+ $$("#tabs button").forEach(x=>x.classList.toggle("sel",x===b));
+ $$(".panel").forEach(p=>p.hidden=p.id!=="v-"+tab);if(tab!=="breathe")stopB()});
+
+// ---- Breathing ----
+const P={calm:[["Breathe in",4,1],["Breathe out",4,.6]],deep:[["Breathe in",4,1],["Hold",7,1],["Breathe out",8,.6]],box:[["In",4,1],["Hold",4,1],["Out",4,.6],["Hold",4,.6]]};
+let bp="calm",run=false,bt,cyc=0;
+function step(i){if(!run)return;const L=P[bp],ph=L[i%L.length];
+ if(i%L.length===0&&i>0){cyc++;$("#cyc").textContent=cyc+(cyc==1?" breath":" breaths")+" together"}
+ $("#orb").style.transitionDuration=ph[1]+"s";$("#orb").style.transform="scale("+ph[2]+")";$("#cue").textContent=ph[0];
+ bt=setTimeout(()=>step(i+1),ph[1]*1000)}
+function stopB(){run=false;clearTimeout(bt);$("#go").textContent="Start";$("#cue").textContent="Ready when you are";$("#orb").style.transform="scale(.6)"}
+$("#go").onclick=()=>{if(run)return stopB();run=true;cyc=0;$("#cyc").textContent="";$("#go").textContent="Stop";step(0)};
+$("#pats").onclick=e=>{const b=e.target.closest("button");if(!b)return;bp=b.dataset.p;$$("#pats button").forEach(x=>x.classList.toggle("sel",x===b));if(run){stopB()}};
+
+// ---- Letters ----
+for(const k in LETTERS){const b=document.createElement("button");b.textContent="Open when "+k;b.onclick=()=>{const l=$("#letter");l.hidden=false;l.style.transform="rotate("+((Math.random()*4-2).toFixed(1))+"deg) scale(.96)";
+ l.textContent=LETTERS[k]+(ME?"  — "+ME:"");requestAnimationFrame(()=>l.style.transform+=" scale(1.04)")};$("#lt").appendChild(b)}
+
+// ---- Release ----
+const calm=["It's not yours to carry tonight.","Let it be lighter. You did enough today.","Gone, for now. Take a slow breath."];let rc=0;
+$("#rel").onclick=()=>{const w=$("#w"),v=w.value.trim();if(!v)return;const r=w.getBoundingClientRect(),s=document.createElement("div");
+ s.className="slip";s.textContent=v;s.style.left=r.left+"px";s.style.top=r.top+"px";document.body.appendChild(s);setTimeout(()=>s.remove(),4100);
+ w.value="";rc++;$("#rm").textContent=calm[(rc-1)%calm.length]+" ("+rc+" released)"};
+
+// ---- Jar ----
+let last=-1;const kept=new Set();
+function showKept(){$("#kept").innerHTML=[...kept].map(t=>'<p class="saved">&hearts; '+t+'</p>').join("")}
+$("#pull").onclick=()=>{let i;do{i=Math.random()*REASONS.length|0}while(i===last&&REASONS.length>1);last=i;
+ const n=$("#note");n.hidden=false;n.textContent=REASONS[i];n.style.transform="rotate("+(Math.random()*6-3).toFixed(1)+"deg)";
+ const k=$("#keep");k.hidden=false;k.setAttribute("aria-pressed",kept.has(REASONS[i]))};
+$("#keep").onclick=()=>{const t=REASONS[last];kept.has(t)?kept.delete(t):kept.add(t);$("#keep").setAttribute("aria-pressed",kept.has(t));showKept()};
+
+// ---- Soft rain sound ----
+let ac,mg;
+$("#snd").onclick=()=>{const b=$("#snd"),on=b.getAttribute("aria-pressed")!=="true";
+ if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();mg=ac.createGain();mg.gain.value=0;mg.connect(ac.destination);
+  const buf=ac.createBuffer(1,ac.sampleRate*3,ac.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  const s=ac.createBufferSource();s.buffer=buf;s.loop=true;const f=ac.createBiquadFilter();f.type="lowpass";f.frequency.value=1100;
+  const g=ac.createGain();g.gain.value=.35;s.connect(f).connect(g).connect(mg);s.start();
+  [196,246.9,293.7].forEach(fr=>{const o=ac.createOscillator();o.frequency.value=fr;const og=ac.createGain();og.gain.value=.05;o.connect(og).connect(mg);o.start()})}
+ ac.resume();mg.gain.setTargetAtTime(on?.3:0,ac.currentTime,.5);b.setAttribute("aria-pressed",on);b.textContent="Soft rain: "+(on?"on":"off")};
+</script></body></html>
